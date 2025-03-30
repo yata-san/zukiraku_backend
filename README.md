@@ -1,1 +1,0 @@
-# logodep_backend
