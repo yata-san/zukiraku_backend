@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
-import datetime
+from datetime import datetime, timezone
 
 Base = declarative_base()
 
@@ -8,7 +8,7 @@ Base = declarative_base()
 class ScreeningType(Base):
     __tablename__ = 'screening_types'
     screening_type_id = Column(String(50), primary_key=True)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     users = relationship("User", back_populates="screening_type")
     results = relationship("ScreeningResult", back_populates="screening_type")
@@ -17,7 +17,7 @@ class ScreeningType(Base):
 # ユーザー
 class User(Base):
     __tablename__ = 'users'
-    user_id = Column(String(50), primary_key=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(100))
     password = Column(String(100))
     screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
@@ -72,6 +72,7 @@ class Answer(Base):
     __tablename__ = 'answers'
     answer_id = Column(Integer, primary_key=True, autoincrement=True)
     screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
+    session_id = Column(String(255))  # ← 復活
     question_id = Column(Integer, ForeignKey('questions.question_id'))
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
 
