@@ -5,13 +5,53 @@ print("platform", platform.uname())
 
 from sqlalchemy import create_engine, insert, delete, update, select
 import sqlalchemy
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 import json
 import pandas as pd
+import uuid
 
 from db_control.connect_MySQL import engine
-from db_control.mymodels import Customers
+from db_control.mymodels_MySQL import Answer, ScreeningType, ScreeningResult, ChoiceScore
+from datetime import datetime
+# AnswerCreate スキーマをインポート
+from db_control.schemas import AnswerCreate
+from models.answer import AnswerCreate  # 追加
 
+def get_scores_by_choice_id(choice_id: int, db: Session):
+    return db.query(ChoiceScore).filter(ChoiceScore.choice_id == choice_id).all()
+
+def create_answer(answer_data: AnswerCreate, db: Session):
+    answer = Answer(
+        screening_type_id=answer_data.screening_type_id,
+        session_id=answer_data.session_id,
+        question_id=answer_data.question_id,
+        choice_id=answer_data.choice_id,
+    )
+    db.add(answer)
+    db.commit()
+    db.refresh(answer)
+    return answer
+
+def generate_screening_type_id():
+    return str(uuid.uuid4())
+
+def insert_screening_type(screening_type_id: str, created_at: datetime, db: Session):
+    screening_type = ScreeningType(screening_type_id=screening_type_id, created_at=created_at)
+    db.add(screening_type)
+    db.commit()
+
+def insert_screening_result(screening_type_id: str, headache_type: str, scores: dict, diagnosed_at: datetime, db: Session):
+    result = ScreeningResult(
+        screening_type_id=screening_type_id,
+        type_id=headache_type,
+        headache_type=headache_type,
+        symptom="（あとで追加）",
+        trigger="（あとで追加）",
+        advice="（あとで追加）",
+        diagnosed_at=diagnosed_at
+    )
+    db.add(result)
+    db.commit()
 
 def myinsert(mymodel, values):
     # session構築
@@ -88,7 +128,8 @@ def myupdate(mymodel, values):
 
     customer_id = values.pop("customer_id")
 
-    query = "お見事！E0002の原因はこのクエリの実装ミスです。正しく実装しましょう"
+    #"お見事！E0002の原因はこのクエリの実装ミスです。正しく実装しましょう"
+    query = update(mymodel).where(mymodel.customer_id == customer_id).values(values)
     try:
         # トランザクションを開始
         with session.begin():

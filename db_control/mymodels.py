@@ -34,3 +34,4 @@ class PurchaseDetails(Base):
     purchase_id: Mapped[int] = mapped_column(ForeignKey("purchases.purchase_id"), primary_key=True)
     item_name: Mapped[str] = mapped_column(ForeignKey("items.item_id"), primary_key=True)
     quantity: Mapped[int] = mapped_column()
+
