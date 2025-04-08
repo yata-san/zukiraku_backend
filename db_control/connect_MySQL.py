@@ -16,7 +16,7 @@ DB_PORT = os.getenv('DB_PORT')
 DB_NAME = os.getenv('DB_NAME')
 
 # SSL証明書のパス
-ssl_cert = str(base_path / 'DigiCertGlobalRootCA.crt.pem')
+# ssl_cert = str(base_path / 'DigiCertGlobalRootCA.crt.pem')
 
 # MySQLのURL構築
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -24,18 +24,20 @@ DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB
 # エンジンの作成（SSL設定を追加）
 engine = create_engine(
     DATABASE_URL,
-    connect_args={
-        "ssl": {
-            "ssl_ca": ssl_cert
-        }
-    },
     echo=True,
     pool_pre_ping=True,
     pool_recycle=3600
 )
 
+    # connect_args={
+    #     "ssl": {
+    #         "ssl_ca": ssl_cert
+    #     }
+    # },
+
+print("[DEBUG] DB_NAME =", DB_NAME)
+print("[DEBUG] DATABASE_URL =", DATABASE_URL)
 print("Current working directory:", os.getcwd())
-print("Certificate file exists:", os.path.exists('DigiCertGlobalRootCA.crt.pem'))
 
 # from sqlalchemy import create_engine
 # import os

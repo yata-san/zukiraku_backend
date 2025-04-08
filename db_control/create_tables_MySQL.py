@@ -16,6 +16,8 @@ from db_control.connect_MySQL import engine
 # Base.metadata.drop_all(engine)  # これでテーブルを削除
 # Base.metadata.create_all(engine)  # これで再作成
 
+print("✅ 全テーブル作成完了")
+
 # ↓↓↓ 以下は元ファイル。必要なときだけ使えるようにコメントアウト ↓↓↓
 
 # import os
