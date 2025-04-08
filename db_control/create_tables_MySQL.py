@@ -13,8 +13,8 @@ from db_control.connect_MySQL import engine
 # print("✅ 全テーブル作成完了")
 
 # テーブルを削除して再作成
-Base.metadata.drop_all(engine)  # これでテーブルを削除
-Base.metadata.create_all(engine)  # これで再作成
+# Base.metadata.drop_all(engine)  # これでテーブルを削除
+# Base.metadata.create_all(engine)  # これで再作成
 
 # ↓↓↓ 以下は元ファイル。必要なときだけ使えるようにコメントアウト ↓↓↓
 
@@ -55,7 +55,7 @@ Base.metadata.create_all(engine)  # これで再作成
 #    pool_recycle=3600
 # )
 
-# # Baseクラスの作成
+# Baseクラスの作成
 # Base = declarative_base()
 
 # # テーブルの定義
