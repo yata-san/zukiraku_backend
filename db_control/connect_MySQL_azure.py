@@ -9,8 +9,9 @@ DATABASE_URL = "mysql+pymysql://tech0gen9student:vY7JZNfU@rdbs-002-step3-2-oshim
 # SSL_CA_PATH = "C:/Users/herim/Desktop/DigiCertGlobalRootCA.crt.pem"
 
 #Azure上でのSSL証明書のパス
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SSL_CA_PATH = os.path.join(BASE_DIR, "DigiCertGlobalRootCA.crt.pem")
+SSL_CA_PATH = "/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem"
+# BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# SSL_CA_PATH = os.path.join(BASE_DIR, "DigiCertGlobalRootCA.crt.pem")
 
 engine = create_engine(
     DATABASE_URL,
