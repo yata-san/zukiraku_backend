@@ -4,6 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 # 新しいルーター（/answers）をインポート
 from routers import answer
 
+# ⬇️ 新しく追加する reflection ルーター
+from routers import reflection  # ← これを追加！
+
 app = FastAPI()
 
 # CORSミドルウェアの設定（ローカル開発用）
@@ -20,5 +23,6 @@ app.add_middleware(
 def index():
     return {"message": "FastAPI Zukiraku API running!"}
 
-# /answersルーターを登録（タイプ判定用API）
+# 各ルーターの登録
 app.include_router(answer.router, prefix="", tags=["Headache Screening"])
+app.include_router(reflection.router, prefix="", tags=["Reflection"])  # ← これも追加！
