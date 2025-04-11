@@ -1,6 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
+from sqlalchemy import Date
+from sqlalchemy.dialects.mysql import INTEGER
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer
+
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), 'db_control'))  # db_controlへのパスを追加
 
 Base = declarative_base()
 
@@ -20,9 +28,13 @@ class User(Base):
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(100))
     password = Column(String(100))
-    screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
+    screening_type_id = Column(String(50, collation="utf8mb4_general_ci"), ForeignKey('screening_types.screening_type_id'))
 
     screening_type = relationship("ScreeningType", back_populates="users")
+    to_dos = relationship("ToDo", back_populates="user")
+    to_bes = relationship("ToBe", back_populates="user")
+    review_sessions = relationship("ReviewSession", back_populates="user")
+    feedbacks = relationship("Feedback", back_populates="user")
 
 # タイプ判定結果
 class ScreeningResult(Base):
@@ -79,6 +91,78 @@ class Answer(Base):
     screening_type = relationship("ScreeningType", back_populates="answers")
     question = relationship("Question", back_populates="answers")
     choice = relationship("Choice", back_populates="answers")
+
+# やること
+class ToDo(Base):
+    __tablename__ = 'to_do'
+    to_do_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    label = Column(String(255))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="to_dos")
+    scores = relationship("ToDoScore", back_populates="to_do")
+
+# なりたい姿
+class ToBe(Base):
+    __tablename__ = 'to_be'
+    to_be_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    label = Column(String(255))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="to_bes")
+    scores = relationship("ToBeScore", back_populates="to_be")
+
+# 振り返りセッション
+class ReviewSession(Base):
+    __tablename__ = 'review_session'
+    session_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    execution_date = Column(Date)
+    status = Column(String(50))
+    review_session_comment = Column(Text)  # ←人の記入用コメント（そのままでもOK）
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="review_sessions")
+    to_do_scores = relationship("ToDoScore", back_populates="session")
+    to_be_scores = relationship("ToBeScore", back_populates="session")
+    feedbacks = relationship("Feedback", back_populates="session")
+
+# ToDoスコア
+class ToDoScore(Base):
+    __tablename__ = 'to_do_score'
+    to_do_score_id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(Integer, ForeignKey('review_session.session_id'))
+    to_do_id = Column(Integer, ForeignKey('to_do.to_do_id'))
+    to_do_score = Column(Integer)
+
+    session = relationship("ReviewSession", back_populates="to_do_scores")
+    to_do = relationship("ToDo", back_populates="scores")
+
+# ToBeスコア
+class ToBeScore(Base):
+    __tablename__ = 'to_be_score'
+    to_be_score_id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(Integer, ForeignKey('review_session.session_id'))
+    to_be_id = Column(Integer, ForeignKey('to_be.to_be_id'))
+    to_be_score = Column(Integer)
+
+    session = relationship("ReviewSession", back_populates="to_be_scores")
+    to_be = relationship("ToBe", back_populates="scores")
+
+class Feedback(Base):
+    __tablename__ = 'feedback'
+    feedback_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    session_id = Column(Integer, ForeignKey('review_session.session_id'))  # ←追加
+    feedback_text = Column(Text)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    ai_feedback = Column(Text)  # ←追加！OpenAIの生成文を保存
+
+    user = relationship("User", back_populates="feedbacks")
+    # sessionオブジェクトとのリレーションも任意で:
+    session = relationship("ReviewSession", back_populates="feedbacks")
 
 # from sqlalchemy import String, Integer
 # from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
