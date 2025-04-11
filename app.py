@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+from fastapi.responses import JSONResponse
+import traceback
 
 # ルーターのインポート
 from routers import answer
@@ -38,7 +40,11 @@ async def catch_exceptions_middleware(request: Request, call_next):
         return await call_next(request)
     except Exception as e:
         logger.exception("未処理の例外が発生しました")
-        raise e
+        # Swagger上でエラーの詳細が見られるようにする
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(e)}  # or traceback.format_exc() for full trace
+        )
 
 # -------------------------------
 # トップページ（動作確認用）
