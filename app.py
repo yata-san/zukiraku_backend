@@ -39,11 +39,14 @@ async def catch_exceptions_middleware(request: Request, call_next):
     try:
         return await call_next(request)
     except Exception as e:
-        logger.exception("未処理の例外が発生しました")
-        # Swagger上でエラーの詳細が見られるようにする
+        # エラーの詳細をログに書く（ファイル・行番号含む）
+        error_trace = traceback.format_exc()
+        logger.exception("未処理の例外が発生しました:\n%s", error_trace)
+
+        # Swagger上で詳細表示
         return JSONResponse(
             status_code=500,
-            content={"detail": str(e)}  # or traceback.format_exc() for full trace
+            content={"detail": error_trace}  # ← エラーの詳細なスタックトレース付き
         )
 
 # -------------------------------
