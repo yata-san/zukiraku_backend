@@ -31,9 +31,10 @@ jobs:
         run: |
           mkdir deploy_dist
           rsync -av --exclude='venv' --exclude='__pycache__' --exclude='.git' --exclude='.github' ./ ./deploy_dist
+          cp DigiCertGlobalRootCA.crt.pem ./deploy_dist/   # ← ⭐ ここで先にコピー！
           cd deploy_dist
           zip -r ../release.zip .
-
+        
       - name: 🚀 Deploy ZIP to Azure
         uses: azure/webapps-deploy@v3
         with:
