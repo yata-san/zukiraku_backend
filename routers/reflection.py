@@ -4,14 +4,12 @@ from typing import List
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, date
 from openai import OpenAI
+from decouple import config  # ← configでもOK
 
-# client = OpenAI()  # APIキーは環境変数 OPENAI_API_KEY から自動取得されます
-import os
-print("APIキー:", os.getenv("OPENAI_API_KEY"))  # ← ここで環境変数が取れてるか確認！
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# OpenAIクライアントの初期化（APIキーは.env経由で取得）
+client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
-# データベースで切り替え！
-# from db_control.connect_MySQL_local import get_db
+# データベース接続（Azure用）
 from db_control.connect_MySQL_azure import get_db
 
 from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback
