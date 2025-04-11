@@ -7,6 +7,7 @@ from openai import OpenAI
 
 # client = OpenAI()  # APIキーは環境変数 OPENAI_API_KEY から自動取得されます
 import os
+print("APIキー:", os.getenv("OPENAI_API_KEY"))  # ← ここで環境変数が取れてるか確認！
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # データベースで切り替え！
@@ -14,11 +15,6 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 from db_control.connect_MySQL_azure import get_db
 
 from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback
-
-# OpenAI API設定
-import openai
-from decouple import config
-openai.api_key = config("OPENAI_API_KEY")
 
 router = APIRouter()
 
