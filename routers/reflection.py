@@ -5,7 +5,9 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone, date
 from openai import OpenAI
 
-client = OpenAI()  # APIキーは環境変数 OPENAI_API_KEY から自動取得されます
+# client = OpenAI()  # APIキーは環境変数 OPENAI_API_KEY から自動取得されます
+import os
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # データベースで切り替え！
 # from db_control.connect_MySQL_local import get_db
