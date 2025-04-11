@@ -9,7 +9,7 @@ DATABASE_URL = "mysql+pymysql://tech0gen9student:vY7JZNfU@rdbs-002-step3-2-oshim
 # SSL_CA_PATH = "C:/Users/herim/Desktop/DigiCertGlobalRootCA.crt.pem"
 
 #Azure上でのSSL証明書のパス
-SSL_CA_PATH = "/home/site/wwwroot/DigiCertGlobalRootCA.crt.pem"
+SSL_CA_PATH = "./DigiCertGlobalRootCA.crt.pem"
 
 engine = create_engine(
     DATABASE_URL,
