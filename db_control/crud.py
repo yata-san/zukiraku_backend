@@ -11,7 +11,7 @@ import pandas as pd
 import uuid
 
 from db_control.connect_MySQL import engine
-from db_control.mymodels_MySQL import Answer, ScreeningType, ScreeningResult, ChoiceScore
+from db_control.mymodels_MySQL import Answer, ScreeningResultMaster, ScreeningResultHistory, ChoiceScore
 from datetime import datetime
 # AnswerCreate スキーマをインポート
 from db_control.schemas import AnswerCreate

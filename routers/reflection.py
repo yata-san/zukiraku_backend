@@ -12,7 +12,7 @@ client = OpenAI(api_key=config("OPENAI_API_KEY"))
 # データベース接続（Azure用）
 from db_control.connect_MySQL_azure import get_db
 
-from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback
+from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback, ToDo, ToBe  # ← これ追加！
 
 router = APIRouter()
 
@@ -30,6 +30,14 @@ class ReflectionRequest(BaseModel):
     to_do_scores: List[ToDoScoreItem]
     to_be_scores: List[ToBeScoreItem]
     feedback_text: str
+
+class ToDoLabelRequest(BaseModel):
+    user_id: int
+    to_do_ids: List[int]
+
+class ToBeLabelRequest(BaseModel):
+    user_id: int
+    to_be_ids: List[int]
 
 # --- OpenAIの応答生成関数 ---
 def generate_ai_feedback(feedback_text, to_do_scores, to_be_scores):
@@ -113,3 +121,19 @@ def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
         "message": "Review submitted successfully",
         "ai_feedback": ai_feedback
     }
+
+@router.post("/get_to_do_labels")
+def get_to_do_labels(body: ToDoLabelRequest, db: Session = Depends(get_db)):
+    result = db.query(ToDo).filter(
+        ToDo.user_id == body.user_id,
+        ToDo.to_do_id.in_(body.to_do_ids)
+    ).all()
+    return {item.to_do_id: item.label for item in result}
+
+@router.post("/get_to_be_labels")
+def get_to_be_labels(body: ToBeLabelRequest, db: Session = Depends(get_db)):
+    result = db.query(ToBe).filter(
+        ToBe.user_id == body.user_id,
+        ToBe.to_be_id.in_(body.to_be_ids)
+    ).all()
+    return {item.to_be_id: item.label for item in result}
