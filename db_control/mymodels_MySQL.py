@@ -12,11 +12,10 @@ Base = declarative_base()
 
 # スクリーニングタイプ判定マスタ
 class ScreeningResultMaster(Base):
-    __tablename__ = 'screening_types'
+    __tablename__ = 'screening_type_master'  # ←ここ修正！
     screening_type_id = Column(String(50), primary_key=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    users = relationship("User", back_populates="screening_type")
     results = relationship("ScreeningResultHistory", back_populates="screening_type")
     answers = relationship("Answer", back_populates="screening_type")
 
@@ -35,9 +34,9 @@ class User(Base):
 # タイプ判定結果（履歴）
 class ScreeningResultHistory(Base):
     __tablename__ = 'screening_results'
-    screening_result_id = Column(Integer, primary_key=True, autoincrement=True)  # ←ここ修正！
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
-    screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
+    screening_type_id = Column(String(50), ForeignKey('screening_type_master.screening_type_id'))
     diagnosed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User")
@@ -77,7 +76,7 @@ class ChoiceScore(Base):
 class Answer(Base):
     __tablename__ = 'answers'
     answer_id = Column(Integer, primary_key=True, autoincrement=True)
-    screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
+    screening_type_id = Column(String(50), ForeignKey('screening_type_master.screening_type_id'))
     session_id = Column(String(255))
     question_id = Column(Integer, ForeignKey('questions.question_id'))
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
