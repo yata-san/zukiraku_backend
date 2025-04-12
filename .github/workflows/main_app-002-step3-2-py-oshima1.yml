@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - feature/yml_review  # ← 開発ブランチ名も含めておくと安心
+      - feature/yml_review
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
+      - name: 📅 Checkout repository
         uses: actions/checkout@v4
 
       - name: 🐍 Set up Python
@@ -20,21 +20,29 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: ♻️ Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: 📦 Install dependencies
         run: pip install -r requirements.txt
 
-      - name: 🧹 Clean up unnecessary files
+      - name: 🪟 Clean up unnecessary files
         run: |
           rm -rf venv __pycache__ .pytest_cache .git .github
 
-      - name: 🗜️ Create ZIP for deployment
+      - name: 🧼 Create ZIP for deployment
         run: |
           mkdir deploy_dist
           rsync -av --exclude='venv' --exclude='__pycache__' --exclude='.git' --exclude='.github' ./ ./deploy_dist
-          cp DigiCertGlobalRootCA.crt.pem ./deploy_dist/   # ← ⭐ ここで先にコピー！
+          cp DigiCertGlobalRootCA.crt.pem ./deploy_dist/
           cd deploy_dist
           zip -r ../release.zip .
-        
+
       - name: 🚀 Deploy ZIP to Azure
         uses: azure/webapps-deploy@v3
         with:
