@@ -1,53 +1,47 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer, Date
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime, timezone
-from sqlalchemy import Date
 from sqlalchemy.dialects.mysql import INTEGER
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Integer
-
 import sys
 import os
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'db_control'))  # db_controlへのパスを追加
+# db_controlへのパスを追加
+sys.path.append(os.path.join(os.path.dirname(__file__), 'db_control'))
 
 Base = declarative_base()
 
-# スクリーニングタイプ判定
-class ScreeningType(Base):
+# スクリーニングタイプ判定マスタ
+class ScreeningResultMaster(Base):
     __tablename__ = 'screening_types'
     screening_type_id = Column(String(50), primary_key=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     users = relationship("User", back_populates="screening_type")
-    results = relationship("ScreeningResult", back_populates="screening_type")
+    results = relationship("ScreeningResultHistory", back_populates="screening_type")
     answers = relationship("Answer", back_populates="screening_type")
 
 # ユーザー
 class User(Base):
     __tablename__ = 'users'
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(INTEGER(unsigned=True), primary_key=True, autoincrement=True)
     email = Column(String(100))
     password = Column(String(100))
-    screening_type_id = Column(String(50, collation="utf8mb4_general_ci"), ForeignKey('screening_types.screening_type_id'))
 
-    screening_type = relationship("ScreeningType", back_populates="users")
     to_dos = relationship("ToDo", back_populates="user")
     to_bes = relationship("ToBe", back_populates="user")
     review_sessions = relationship("ReviewSession", back_populates="user")
     feedbacks = relationship("Feedback", back_populates="user")
 
-# タイプ判定結果
-class ScreeningResult(Base):
+# タイプ判定結果（履歴）
+class ScreeningResultHistory(Base):
     __tablename__ = 'screening_results'
-    screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'), primary_key=True)
-    type_id = Column(String(50))
-    headache_type = Column(String(100))
-    symptom = Column(Text)
-    trigger = Column(Text)
-    advice = Column(Text)
-    diagnosed_at = Column(DateTime)
+    screening_result_id = Column(Integer, primary_key=True, autoincrement=True)  # ←ここ修正！
+    user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
+    screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
+    diagnosed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    screening_type = relationship("ScreeningType", back_populates="results")
+    user = relationship("User")
+    screening_type = relationship("ScreeningResultMaster", back_populates="results")
 
 # 質問
 class Question(Base):
@@ -74,7 +68,7 @@ class ChoiceScore(Base):
     __tablename__ = 'choice_scores'
     choice_score_id = Column(Integer, primary_key=True, autoincrement=True)
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
-    score_type = Column(String(50))  # 修正済！
+    score_type = Column(String(50))
     score_value = Column(Integer)
 
     choice = relationship("Choice", back_populates="scores")
@@ -84,11 +78,11 @@ class Answer(Base):
     __tablename__ = 'answers'
     answer_id = Column(Integer, primary_key=True, autoincrement=True)
     screening_type_id = Column(String(50), ForeignKey('screening_types.screening_type_id'))
-    session_id = Column(String(255))  # ← 復活
+    session_id = Column(String(255))
     question_id = Column(Integer, ForeignKey('questions.question_id'))
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
 
-    screening_type = relationship("ScreeningType", back_populates="answers")
+    screening_type = relationship("ScreeningResultMaster", back_populates="answers")
     question = relationship("Question", back_populates="answers")
     choice = relationship("Choice", back_populates="answers")
 
@@ -96,7 +90,7 @@ class Answer(Base):
 class ToDo(Base):
     __tablename__ = 'to_do'
     to_do_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
+    user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
     label = Column(String(255))
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -107,7 +101,7 @@ class ToDo(Base):
 class ToBe(Base):
     __tablename__ = 'to_be'
     to_be_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
+    user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
     label = Column(String(255))
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -118,10 +112,10 @@ class ToBe(Base):
 class ReviewSession(Base):
     __tablename__ = 'review_session'
     session_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
+    user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
     execution_date = Column(Date)
     status = Column(String(50))
-    review_session_comment = Column(Text)  # ←人の記入用コメント（そのままでもOK）
+    review_session_comment = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="review_sessions")
@@ -151,17 +145,17 @@ class ToBeScore(Base):
     session = relationship("ReviewSession", back_populates="to_be_scores")
     to_be = relationship("ToBe", back_populates="scores")
 
+# フィードバック
 class Feedback(Base):
     __tablename__ = 'feedback'
     feedback_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
-    session_id = Column(Integer, ForeignKey('review_session.session_id'))  # ←追加
+    user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
+    session_id = Column(Integer, ForeignKey('review_session.session_id'))
     feedback_text = Column(Text)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    ai_feedback = Column(Text)  # ←追加！OpenAIの生成文を保存
+    ai_feedback = Column(Text)
 
     user = relationship("User", back_populates="feedbacks")
-    # sessionオブジェクトとのリレーションも任意で:
     session = relationship("ReviewSession", back_populates="feedbacks")
 
 # from sqlalchemy import String, Integer

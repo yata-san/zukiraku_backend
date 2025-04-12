@@ -3,3 +3,6 @@
 __pycache__/
 *.db
 DigiCertGlobalRootCA.crt.pem
+
+# SQLバックアップファイルを除外
+*.sql
