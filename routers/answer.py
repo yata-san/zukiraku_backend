@@ -1,12 +1,25 @@
-# routers/answer.py
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from db_control.connect import get_db
-from models.answer import AnswerRequest, AnswerCreate # 追加
+from datetime import datetime, UTC
+
+# ✅ 本番DB（Azure）への接続
+from db_control.connect_MySQL_azure import get_db
+
+# ✅ 使用するテーブル（ORMモデル）を読み込み
+from db_control.mymodels_MySQL import (
+    Answer,
+    Choice,
+    ChoiceScore,
+    Question,
+    ScreeningResultHistory,
+    ScreeningResultMaster,
+    User
+)
+
+# リクエスト/バリデーション用モデルとサービスロジック
+from models.answer import AnswerRequest, AnswerCreate
 from services import scoring
 from db_control import crud
-from datetime import datetime, UTC, timezone
 
 router = APIRouter()
 
@@ -24,8 +37,7 @@ def submit_answers(payload: AnswerRequest, db: Session = Depends(get_db)):
             question_id=item.question_id,
             choice_id=item.choice_id
         )
-        crud.create_answer(answer_data, db)  # insert_answer -> create_answer に変更
-
+        crud.create_answer(answer_data, db)
 
     # ❸ スコア計算
     choice_ids = [item.choice_id for item in payload.answers]
@@ -46,4 +58,3 @@ def submit_answers(payload: AnswerRequest, db: Session = Depends(get_db)):
         "headache_type": headache_type,
         "scores": score_dict
     }
-

@@ -11,7 +11,6 @@ client = OpenAI(api_key=config("OPENAI_API_KEY"))
 
 # データベース接続（Azure用）
 from db_control.connect_MySQL_azure import get_db
-
 from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback, ToDo, ToBe  # ← これ追加！
 
 router = APIRouter()

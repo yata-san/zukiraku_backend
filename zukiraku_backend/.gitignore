@@ -1,0 +1,8 @@
+.env
+*.pyc
+__pycache__/
+*.db
+DigiCertGlobalRootCA.crt.pem
+
+# SQLバックアップファイルを除外
+*.sql

@@ -1,0 +1,1 @@
+from .connect_MySQL import engine  # connect_MySQL.pyからengineをインポート

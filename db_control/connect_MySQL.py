@@ -1,3 +1,6 @@
+print("🚨 connect_MySQL.py が読み込まれました！")
+raise RuntimeError("このファイルはもう使いません")
+
 from sqlalchemy import create_engine
 import os
 from pathlib import Path

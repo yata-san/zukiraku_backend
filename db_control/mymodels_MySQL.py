@@ -41,6 +41,7 @@ class ScreeningResultHistory(Base):
 
     user = relationship("User")
     screening_type = relationship("ScreeningResultMaster", back_populates="results")
+    answers = relationship("Answer", back_populates="screening_result")  # ← 追加！
 
 # 質問
 class Question(Base):
@@ -76,12 +77,11 @@ class ChoiceScore(Base):
 class Answer(Base):
     __tablename__ = 'answers'
     answer_id = Column(Integer, primary_key=True, autoincrement=True)
-    screening_type_id = Column(String(50), ForeignKey('screening_type_master.screening_type_id'))
-    session_id = Column(String(255))
+    screening_result_id = Column(Integer, ForeignKey('screening_results.id'))  # ← ここが変更点！
     question_id = Column(Integer, ForeignKey('questions.question_id'))
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
 
-    screening_type = relationship("ScreeningResultMaster", back_populates="answers")
+    screening_result = relationship("ScreeningResultHistory", back_populates="answers")  # ← これも変更
     question = relationship("Question", back_populates="answers")
     choice = relationship("Choice", back_populates="answers")
 
