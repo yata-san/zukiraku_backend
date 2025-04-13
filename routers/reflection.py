@@ -53,10 +53,15 @@ def generate_ai_feedback_with_history(
     feedback_text, to_do_scores, to_be_scores, past_messages: list[str]
 ):
     history = ChatMessageHistory()
+
+    # 過去の振り返り内容を履歴として追加
     for past in past_messages:
         history.add_user_message(past)
+
+    # システムプロンプト
     history.add_message(SystemMessage(content="あなたは優しいメンタルコーチです。"))
 
+    # 現在のプロンプト
     prompt = f"""
 ユーザーの振り返りに対して、前向きなフィードバックと改善アドバイスを300文字程度で出力してください。
 
@@ -76,6 +81,7 @@ def generate_ai_feedback_with_history(
 # --- エンドポイント ---
 @router.post("/submit_review")
 def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
+    # 1. ReviewSession 作成
     review_session = ReviewSession(
         user_id=body.user_id,
         execution_date=date.today(),
@@ -86,17 +92,21 @@ def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(review_session)
 
+    # 2. ToDoスコアを登録
     for item in body.to_do_scores:
         db.add(ToDoScore(session_id=review_session.session_id, to_do_id=item.to_do_id, to_do_score=item.to_do_score))
 
+    # 3. ToBeスコアを登録
     for item in body.to_be_scores:
         db.add(ToBeScore(session_id=review_session.session_id, to_be_id=item.to_be_id, to_be_score=item.to_be_score))
 
+    # 4. ユーザーの過去フィードバック履歴を取得（最大3件）
     past_feedbacks = db.query(Feedback).filter(
         Feedback.user_id == body.user_id
     ).order_by(Feedback.created_at.desc()).limit(3).all()
     past_messages = [f.feedback_text for f in past_feedbacks if f.feedback_text]
 
+    # 5. フィードバック登録
     feedback = Feedback(
         user_id=body.user_id,
         session_id=review_session.session_id,
@@ -105,6 +115,7 @@ def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
     )
     db.add(feedback)
 
+    # 6. LangChainを使ってAIフィードバックを生成
     ai_feedback = generate_ai_feedback_with_history(
         feedback_text=body.feedback_text,
         to_do_scores=body.to_do_scores,
