@@ -19,4 +19,4 @@ class AnswerResponse(BaseModel):
     screening_type_id: Optional[str]
 
     class Config:
-        orm_mode = True  # SQLAlchemyモデル → Pydanticモデル変換を許可
+        from_attributes = True  # ✅ Pydantic v2対応  # SQLAlchemyモデル → Pydanticモデル変換を許可
