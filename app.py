@@ -32,14 +32,22 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return await request_validation_exception_handler(request, exc)
 
 # -------------------------------
-# CORSミドルウェアの設定（ローカル開発用）
+# 🌐 CORSミドルウェアの設定（ローカル & 本番対応）
+# - allow_origins=["*"] と allow_credentials=True の併用はNG（CORS仕様でブロックされる）
+# - localhost:3000 は Next.js の dev サーバー用
+# - 本番URL（例: VercelやAzure）も追加することで将来的に切り替え可能
 # -------------------------------
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 必要に応じて制限可能
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[  # 👇 安全な範囲で明示指定する（＊は使わない）
+        "http://localhost:3000",  # ✅ 開発時のNext.jsローカルフロント
+        # "https://zukiraku.vercel.app",  # ✅ （本番Vercel用：将来使うなら追加）
+        # "https://app-002-step3-2-py-oshima1.azurewebsites.net",  # ✅ Azure上のAPI本番URL
+    ],
+    allow_credentials=True,  # ✅ 認証付きの通信も許可（クッキーやトークン付きfetch）
+    allow_methods=["*"],     # ✅ GET/POST/PUTなどすべて許可
+    allow_headers=["*"],     # ✅ ヘッダーの制限なし（Content-Typeなどを許可）
 )
 
 # -------------------------------
