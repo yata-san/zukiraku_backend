@@ -60,6 +60,6 @@ def index():
 # -------------------------------
 # 各ルーターの登録
 # -------------------------------
-app.include_router(answer.router, prefix="", tags=["Headache Screening"])
-app.include_router(reflection.router, prefix="", tags=["Reflection"])
+app.include_router(answer.router, prefix="/api", tags=["Headache Screening"])
+app.include_router(reflection.router, prefix="/api", tags=["Reflection"])
 

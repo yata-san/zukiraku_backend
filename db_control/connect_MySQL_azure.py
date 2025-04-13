@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # ▼ ① ローカルPCからAzure接続する場合
 # ------------------------------------
 # DATABASE_URL = "mysql+pymysql://tech0gen9student:vY7JZNfU@rdbs-002-step3-2-oshima1.mysql.database.azure.com:3306/crm_mysql"
-# SSL_CA_PATH = os.getenv("SSL_CA", "C:/Users/herim/Desktop/Tech0/zukiraku_backend/DigiCertGlobalRootCA.crt.pem")
+# SSL_CA_PATH = os.getenv("SSL_CA", "C:\\Users\\yuya2\\tech0\\STEP3-2\\zukiraku_backend\\DigiCertGlobalRootCA.crt.pem") # 山野内のセキュリティ証明書の場所
 # connect_args = {"ssl": {"ca": SSL_CA_PATH}}
 
 # ------------------------------------
