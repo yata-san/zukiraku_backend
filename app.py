@@ -43,7 +43,7 @@ app.add_middleware(
     allow_origins=[  # 👇 安全な範囲で明示指定する（＊は使わない）
         "http://localhost:3000",  # ✅ 開発時のNext.jsローカルフロント
         # "https://zukiraku.vercel.app",  # ✅ （本番Vercel用：将来使うなら追加）
-        "https://app-002-step3-2-py-oshima1.azurewebsites.net",  # ✅ Azure上のAPI本番URL
+        "https://app-002-step3-2-node-oshima1.azurewebsites.net",  # ✅ Azure上のAPI本番URL
         
     ],
     allow_credentials=True,  # ✅ 認証付きの通信も許可（クッキーやトークン付きfetch）
