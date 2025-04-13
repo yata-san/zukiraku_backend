@@ -1,0 +1,51 @@
+name: Deploy Python app to Azure Web App - app-002-step3-2-py-oshima1
+
+on:
+  push:
+    branches:
+      - main
+      - feature/yml_review
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📅 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: ♻️ Cache pip packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: 📦 Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: 🪟 Clean up unnecessary files
+        run: |
+          rm -rf venv __pycache__ .pytest_cache .git .github
+
+      - name: 🧼 Create ZIP for deployment
+        run: |
+          mkdir deploy_dist
+          rsync -av --exclude='venv' --exclude='__pycache__' --exclude='.git' --exclude='.github' ./ ./deploy_dist
+          cp DigiCertGlobalRootCA.crt.pem ./deploy_dist/
+          cd deploy_dist
+          zip -r ../release.zip .
+
+      - name: 🚀 Deploy ZIP to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'app-002-step3-2-py-oshima1'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_462CF3CB4D23430A8B1F623945FBFB34 }}
+          package: release.zip
