@@ -1,13 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from dotenv import load_dotenv
-
-# ローカル用
-# load_dotenv()
-# import os
+import os
 
 # ------------------------------------
 # ▼ ① ローカルPCからAzure接続する場合
+# （使う場合はコメントアウトを外す）
 # ------------------------------------
 # DATABASE_URL = "mysql+pymysql://tech0gen9student:vY7JZNfU@rdbs-002-step3-2-oshima1.mysql.database.azure.com:3306/crm_mysql"
 # SSL_CA_PATH = os.getenv("SSL_CA", "C:/Users/herim/Desktop/Tech0/zukiraku_backend/DigiCertGlobalRootCA.crt.pem")
@@ -20,7 +17,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 connect_args = {"ssl": {"ca": os.getenv("SSL_CA", "/etc/ssl/certs/DigiCertGlobalRootCA.crt.pem")}}
 
 # ------------------------------------
-# 共通設定
+# 共通設定（起動時に接続）
 # ------------------------------------
 engine = create_engine(
     DATABASE_URL,
@@ -28,21 +25,7 @@ engine = create_engine(
 )
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
-# ============================
-# ✅ 遅延接続に切り替えたい場合はこちらを使う
-# ============================
-def get_engine():
-    return create_engine(
-        DATABASE_URL,
-        connect_args={
-            "ssl": {"ca": SSL_CA_PATH},
-            "connect_timeout": 5
-        }
-    )
-
 def get_db() -> Session:
-    engine = get_engine()
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
     db = SessionLocal()
     try:
         yield db
@@ -50,12 +33,23 @@ def get_db() -> Session:
         db.close()
 
 # ============================
-# 共通の get_db（起動時接続モード用）
+# ✅ 遅延接続に切り替えたい場合はこちらを使う（※未使用）
 # ============================
-def get_db() -> Session:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_engine():
+#     return create_engine(
+#         DATABASE_URL,
+#         connect_args={
+#             "ssl": {"ca": SSL_CA_PATH},
+#             "connect_timeout": 5
+#         }
+#     )
+# def get_db() -> Session:
+#     engine = get_engine()
+#     SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+
 
