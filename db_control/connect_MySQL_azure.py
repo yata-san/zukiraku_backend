@@ -2,6 +2,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 import os
 
+# =====================
+# デバッグ：どこで None になっているかログ出力
+# =====================
+print("[DEBUG] connect_MySQL_Azure.py loaded")
+print("[DEBUG] ENV - DATABASE_URL:", os.getenv("DATABASE_URL"))
+print("[DEBUG] ENV - SSL_CA:", os.getenv("SSL_CA"))
+
 # ------------------------------------
 # ▼ ① ローカルPCからAzure接続する場合
 # （使う場合はコメントアウトを外す）
