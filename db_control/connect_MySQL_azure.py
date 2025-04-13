@@ -1,8 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
-load_dotenv()
-import os
+
+# ローカル用
+# load_dotenv()
+# import os
 
 # ------------------------------------
 # ▼ ① ローカルPCからAzure接続する場合
