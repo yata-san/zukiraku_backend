@@ -4,16 +4,25 @@ from typing import List
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, date
 from openai import OpenAI
-from decouple import config  # ← configでもOK
+from decouple import config
 
-# OpenAIクライアントの初期化（APIキーは.env経由で取得）
-client = OpenAI(api_key=config("OPENAI_API_KEY"))
+# ✅ LangChain用に追加
+from langchain_openai import ChatOpenAI
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain.schema import SystemMessage, HumanMessage
 
 # データベース接続（Azure用）
 from db_control.connect_MySQL_azure import get_db
-from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback, ToDo, ToBe  # ← これ追加！
+from db_control.mymodels_MySQL import ReviewSession, ToDoScore, ToBeScore, Feedback, ToDo, ToBe
 
 router = APIRouter()
+
+# --- LangChainモデル初期化 ---
+llm = ChatOpenAI(
+    model_name="gpt-4",
+    temperature=0.7,
+    openai_api_key=config("OPENAI_API_KEY")
+)
 
 # --- Pydantic モデル ---
 class ToDoScoreItem(BaseModel):
@@ -38,8 +47,20 @@ class ToBeLabelRequest(BaseModel):
     user_id: int
     to_be_ids: List[int]
 
-# --- OpenAIの応答生成関数 ---
-def generate_ai_feedback(feedback_text, to_do_scores, to_be_scores):
+# --- LangChain版 応答生成関数 ---
+def generate_ai_feedback_with_history(
+    feedback_text, to_do_scores, to_be_scores, past_messages: list[str]
+):
+    history = ChatMessageHistory()
+    
+    # 過去の振り返り内容を履歴として追加
+    for past in past_messages:
+        history.add_user_message(past)
+
+    # システムプロンプト
+    history.add_message(SystemMessage(content="あなたは優しいメンタルコーチです。"))
+
+    # 現在のプロンプト
     prompt = f"""
 ユーザーの振り返りに対して、前向きなフィードバックと改善アドバイスを300文字程度で出力してください。
 
@@ -52,16 +73,10 @@ def generate_ai_feedback(feedback_text, to_do_scores, to_be_scores):
 【ToBeスコア】
 {[f"ID:{item.to_be_id} → スコア:{item.to_be_score}" for item in to_be_scores]}
     """
+    history.add_message(HumanMessage(content=prompt))
 
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "あなたは優しいメンタルコーチです。"},
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    return response.choices[0].message.content
+    response = llm(history.messages)
+    return response.content
 
 # --- エンドポイント ---
 @router.post("/submit_review")
@@ -95,7 +110,13 @@ def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
         )
         db.add(tobe_score)
 
-    # 4. フィードバック登録
+    # 4. ユーザーの過去フィードバック履歴を取得（最大3件）
+    past_feedbacks = db.query(Feedback).filter(
+        Feedback.user_id == body.user_id
+    ).order_by(Feedback.created_at.desc()).limit(3).all()
+    past_messages = [f.feedback_text for f in past_feedbacks if f.feedback_text]
+
+    # 5. フィードバック登録
     feedback = Feedback(
         user_id=body.user_id,
         session_id=review_session.session_id,
@@ -104,14 +125,13 @@ def submit_review(body: ReflectionRequest, db: Session = Depends(get_db)):
     )
     db.add(feedback)
 
-    # 5. OpenAIからAIフィードバック生成
-    ai_feedback = generate_ai_feedback(
+    # 6. LangChainを使ってAIフィードバックを生成
+    ai_feedback = generate_ai_feedback_with_history(
         feedback_text=body.feedback_text,
         to_do_scores=body.to_do_scores,
-        to_be_scores=body.to_be_scores
+        to_be_scores=body.to_be_scores,
+        past_messages=past_messages
     )
-
-    # AIフィードバックを保存
     feedback.ai_feedback = ai_feedback
 
     db.commit()

@@ -17,7 +17,6 @@ class ScreeningResultMaster(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     results = relationship("ScreeningResultHistory", back_populates="screening_type")
-    answers = relationship("Answer", back_populates="screening_type")
 
 # ユーザー
 class User(Base):
@@ -34,14 +33,14 @@ class User(Base):
 # タイプ判定結果（履歴）
 class ScreeningResultHistory(Base):
     __tablename__ = 'screening_results'
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    screening_result_id = Column(Integer, primary_key=True, autoincrement=True)  # ← id → screening_result_id に修正！
     user_id = Column(INTEGER(unsigned=True), ForeignKey('users.user_id'))
     screening_type_id = Column(String(50), ForeignKey('screening_type_master.screening_type_id'))
     diagnosed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User")
     screening_type = relationship("ScreeningResultMaster", back_populates="results")
-    answers = relationship("Answer", back_populates="screening_result")  # ← 追加！
+    answers = relationship("Answer", back_populates="screening_result")
 
 # 質問
 class Question(Base):
@@ -77,7 +76,7 @@ class ChoiceScore(Base):
 class Answer(Base):
     __tablename__ = 'answers'
     answer_id = Column(Integer, primary_key=True, autoincrement=True)
-    screening_result_id = Column(Integer, ForeignKey('screening_results.id'))  # ← ここが変更点！
+    screening_result_id = Column(Integer, ForeignKey('screening_results.screening_result_id')) # ← ここが変更点！
     question_id = Column(Integer, ForeignKey('questions.question_id'))
     choice_id = Column(Integer, ForeignKey('choices.choice_id'))
 
