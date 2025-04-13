@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 # ▼ ① ローカルPCからAzure接続する場合
 # ------------------------------------
 # DATABASE_URL = "mysql+pymysql://tech0gen9student:vY7JZNfU@rdbs-002-step3-2-oshima1.mysql.database.azure.com:3306/crm_mysql"
+# SSL_CA_PATH = os.getenv("SSL_CA", "C:/Users/herim/Desktop/Tech0/zukiraku_backend/DigiCertGlobalRootCA.crt.pem") #きょんさん？のセキュリティ証明書の場所
 # SSL_CA_PATH = os.getenv("SSL_CA", "C:\\Users\\yuya2\\tech0\\STEP3-2\\zukiraku_backend\\DigiCertGlobalRootCA.crt.pem") # 山野内のセキュリティ証明書の場所
 # connect_args = {"ssl": {"ca": SSL_CA_PATH}}
 
@@ -31,23 +32,23 @@ SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 # ============================
 # ✅ 遅延接続に切り替えたい場合はこちらを使う
 # ============================
-def get_engine():
-    return create_engine(
-        DATABASE_URL,
-        connect_args={
-            "ssl": {"ca": SSL_CA_PATH},
-            "connect_timeout": 5
-        }
-    )
+# def get_engine():
+#     return create_engine(
+#         DATABASE_URL,
+#         connect_args={
+#             "ssl": {"ca": SSL_CA_PATH},
+#             "connect_timeout": 5
+#         }
+#     )
 
-def get_db() -> Session:
-    engine = get_engine()
-    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# def get_db() -> Session:
+#     engine = get_engine()
+#     SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
 
 # ============================
 # 共通の get_db（起動時接続モード用）
