@@ -7,3 +7,4 @@ venv/
 
 # SQLバックアップファイルを除外
 *.sql
+.github/workflows/main_app-002-step3-2-py-oshima1.yml
