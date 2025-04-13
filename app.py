@@ -20,6 +20,17 @@ logger = logging.getLogger(__name__)
 # アプリケーション作成
 app = FastAPI()
 
+# バリデーションエラーのログ出力
+from fastapi.exceptions import RequestValidationError
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
+from fastapi.exception_handlers import request_validation_exception_handler
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("⚠️ バリデーションエラー:", exc.errors())
+    return await request_validation_exception_handler(request, exc)
+
 # -------------------------------
 # CORSミドルウェアの設定（ローカル開発用）
 # -------------------------------
@@ -60,6 +71,6 @@ def index():
 # -------------------------------
 # 各ルーターの登録
 # -------------------------------
-app.include_router(answer.router, prefix="", tags=["Headache Screening"])
-app.include_router(reflection.router, prefix="", tags=["Reflection"])
+app.include_router(answer.router, prefix="/api", tags=["Headache Screening"])
+app.include_router(reflection.router, prefix="/api", tags=["Reflection"])
 

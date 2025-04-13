@@ -53,6 +53,9 @@ def insert_screening_result(screening_type_id: str, headache_type: str, scores: 
     db.add(result)
     db.commit()
 
+def get_review_history(db: Session, user_id: int):
+    return db.query(ReviewSession).filter(ReviewSession.user_id == user_id).all()
+
 def myinsert(mymodel, values):
     # session構築
     Session = sessionmaker(bind=engine)

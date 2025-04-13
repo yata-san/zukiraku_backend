@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
+
 
 # 回答登録用リクエストスキーマ
 class AnswerCreate(BaseModel):
@@ -20,3 +22,20 @@ class AnswerResponse(BaseModel):
 
     class Config:
         from_attributes = True  # ✅ Pydantic v2対応  # SQLAlchemyモデル → Pydanticモデル変換を許可
+
+class ScoreItem(BaseModel):
+    to_be_id: int
+    score: int
+
+class HabitItem(BaseModel):
+    to_do_id: int
+    score: int
+
+class ReviewSessionOut(BaseModel):
+    session_id: str
+    date: date
+    comment: str
+    ratings: dict
+
+    class Config:
+        from_attributes = True
